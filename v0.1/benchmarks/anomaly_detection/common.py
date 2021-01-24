@@ -30,6 +30,10 @@ matplotlib.use('Agg')  # No pictures displayed
 import pylab
 import librosa.display
 
+import tensorflow as tf
+from tensorflow.lite.experimental.microfrontend.python.ops import audio_microfrontend_op as frontend_op
+from tensorflow.python.framework import ops
+
 ########################################################################
 
 
@@ -168,6 +172,29 @@ def file_to_vector_array(file_name,
         # 03 convert melspectrogram to log mel energy
         log_mel_spectrogram = 20.0 / power * numpy.log10(mel_spectrogram + sys.float_info.epsilon)
 
+    elif method == "microfrontend":
+        # 02b use TF microfrontend
+        # For microfrontend we need to convert the input from float [-1..1] to int16
+        # TODO: should we scale for better results
+        yi = y * 32767
+        audio = tf.constant(yi, tf.int16)
+        filterbanks = frontend_op.audio_microfrontend(
+            audio,
+            sample_rate=sr,
+            window_step=hop_length * 1000 / sr,  # 32 [ms], based on hop_length expressed in [samples]
+            window_size=2 * hop_length * 1000 / sr,
+            num_channels=n_mels,
+            upper_band_limit=7500,  # TODO: check why sr/2 crashes
+            lower_band_limit=50,  # gives closest result to librosa. TODO: check exact value
+            smoothing_bits=10,  # TODO: find best smoothing parameters
+            even_smoothing=0.025,
+            odd_smoothing=0.025,  # default: 0.06,
+            enable_pcan=True,
+            enable_log=True)
+        filterbanks = numpy.swapaxes(filterbanks.numpy(), 0, 1)
+
+        # 03 convert melspectrogram to log mel energy: TODO: should already be logscale
+        log_mel_spectrogram = filterbanks
 
     else:
         logger.error("spectrogram method not supported: {}".format(method))
