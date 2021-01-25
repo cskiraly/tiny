@@ -184,7 +184,7 @@ def file_to_vector_array(file_name,
             window_step=hop_length * 1000 / sr,  # 32 [ms], based on hop_length expressed in [samples]
             window_size=2 * hop_length * 1000 / sr,
             num_channels=n_mels,
-            upper_band_limit=7500,  # TODO: check why sr/2 crashes
+            upper_band_limit=7999,  # TODO: check why sr/2 crashes
             lower_band_limit=50,  # gives closest result to librosa. TODO: check exact value
             smoothing_bits=10,  # TODO: find best smoothing parameters
             min_signal_remaining=1.0,
