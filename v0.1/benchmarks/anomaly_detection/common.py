@@ -187,8 +187,9 @@ def file_to_vector_array(file_name,
             upper_band_limit=7500,  # TODO: check why sr/2 crashes
             lower_band_limit=50,  # gives closest result to librosa. TODO: check exact value
             smoothing_bits=10,  # TODO: find best smoothing parameters
-            even_smoothing=0.025,
-            odd_smoothing=0.025,  # default: 0.06,
+            min_signal_remaining=1.0,
+            even_smoothing=0.0,
+            odd_smoothing=0.0,  # default: 0.06,
             enable_pcan=True,
             enable_log=True)
         filterbanks = numpy.swapaxes(filterbanks.numpy(), 0, 1)
