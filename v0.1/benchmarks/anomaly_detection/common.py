@@ -177,6 +177,8 @@ def file_to_vector_array(file_name,
         # For microfrontend we need to convert the input from float [-1..1] to int16
         # TODO: should we scale for better results
         yi = y * 32767
+        # scale = max(y.max(), -y.min())
+        # yi = (y / (scale + sys.float_info.epsilon)) * 32767
         audio = tf.constant(yi, tf.int16)
         filterbanks = frontend_op.audio_microfrontend(
             audio,
