@@ -41,8 +41,8 @@ methods from th_libc.h and all testharness methods from th_lib.h are here.
 #define EE_MSG_TIMESTAMP "m-lap-us-%lu\r\n"
 #define TH_VENDOR_NAME_STRING "unspecified"
 
-#define MAX_DB_INPUT_SIZE (96 * 96 * 3)
-#define TH_MODEL_VERSION EE_MODEL_VERSION_VWW01
+#define MAX_DB_INPUT_SIZE (200 * 128 * 4) // full histogram: 200 slices, 128 freq bins, float32
+#define TH_MODEL_VERSION EE_MODEL_VERSION_DCASE01
 
 #include <stdarg.h>
 #include <stdio.h>
