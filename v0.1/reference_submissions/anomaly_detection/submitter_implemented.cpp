@@ -51,11 +51,11 @@ UnbufferedSerial pc(USBTX, USBRX, 115200);
 constexpr int kTensorArenaSize = 150 * 1024;
 uint8_t tensor_arena[kTensorArenaSize];
 
-typedef int8_t model_input_t;
-typedef int8_t model_output_t;
+typedef float model_input_t;
+typedef float model_output_t;
 
 float input_float[kInputSize];
-int8_t input_quantized[kInputSize];
+// int8_t input_quantized[kInputSize];
 float results[kFeatureWindows];
  
 tflite::MicroModelRunner<model_input_t, model_output_t, 6> *runner;
@@ -89,15 +89,17 @@ void th_results() {
 
 // Implement this method with the logic to perform one inference cycle.
 void th_infer() {
-  float input_scale = runner->input_scale();
-  float input_zero_point = runner->input_zero_point();
-  for (int i = 0; i < kInputSize; i++) {
-    input_quantized[i] = QuantizeFloatToInt8(
-        input_float[i], input_scale, input_zero_point);
-  }
+  // float input_scale = runner->input_scale();
+  // float input_zero_point = runner->input_zero_point();
+  // for (int i = 0; i < kInputSize; i++) {
+  //   input_quantized[i] = QuantizeFloatToInt8(
+  //       input_float[i], input_scale, input_zero_point);
+  // }
+
 
   for (int window = 0; window < 196; window++) {
-    runner->SetInput(input_quantized + window * kFeatureSliceSize);
+    // runner->SetInput(input_quantized + window * kFeatureSliceSize);
+    runner->SetInput(input_float + window * kFeatureSliceSize);
 
     runner->Invoke();
 
@@ -105,8 +107,9 @@ void th_infer() {
     float diffsum = 0;
 
     for (size_t i = 0; i < kFeatureElementCount; i++) {
-      float converted = DequantizeInt8ToFloat(runner->GetOutput()[i], runner->output_scale(),
-                                              runner->output_zero_point());
+      // float converted = DequantizeInt8ToFloat(runner->GetOutput()[i], runner->output_scale(),
+      //                                         runner->output_zero_point());
+      float converted = runner->GetOutput()[i];
       float diff = converted - input_float[i + window * kFeatureSliceSize];
       diffsum += diff * diff;
     }
