@@ -52,7 +52,7 @@ methods from th_libc.h and all testharness methods from th_lib.h are here.
 #include <string.h>
 
 /// \brief required core API
-void th_load_tensor();
+void th_load_tensor(size_t offset);
 void th_results();
 void th_infer();
 void th_timestamp(void);

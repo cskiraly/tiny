@@ -66,9 +66,10 @@ tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* model_input = nullptr;
 
 // Implement this method to prepare for inference and preprocess inputs.
-void th_load_tensor() {
+void th_load_tensor(size_t offset) {
   size_t bytes = ee_get_buffer(reinterpret_cast<uint8_t *>(input_float),
-                               kInputSize * sizeof(float));
+                               kInputSize * sizeof(float),
+                               offset);
   if (bytes / sizeof(float) != kInputSize) {
     th_printf("Input db has %d elemented, expected %d\n", bytes / sizeof(float),
               kInputSize);

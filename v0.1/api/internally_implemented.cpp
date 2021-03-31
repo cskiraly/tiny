@@ -134,13 +134,14 @@ arg_claimed_t ee_profile_parse(char *command) {
     th_printf("  print [N=16] [offset=0]\r\n");
     th_printf("             : Print N bytes at offset as hex\r\n");
     th_printf(
-        "infer N [W=0]: Load input, execute N inferences after W warmup "
-        "loops\r\n");
+        "infer N [W=0] [O=0]: Load input, execute N inferences after W warmup "
+        "loops, using data at offset O\r\n");
     th_printf("results      : Return the result fp32 vector\r\n");
   } else if (ee_buffer_parse(command) == EE_ARG_CLAIMED) {
   } else if (strncmp(command, "infer", EE_CMD_SIZE) == 0) {
     size_t n = 1;
     size_t w = 10;
+    size_t offset = 0;
     int i;
 
     /* Check for inference iterations */
@@ -162,9 +163,19 @@ arg_claimed_t ee_profile_parse(char *command) {
         }
         w = (size_t)i;
       }
+      /* Check for data offset */
+      p_next = strtok(NULL, EE_CMD_DELIMITER);
+      if (p_next) {
+        i = atoi(p_next);
+        if (i < 0) {
+          th_printf("e-[Offset must be >=0]\r\n");
+          return EE_ARG_CLAIMED;
+        }
+        offset = (size_t)i;
+      }
     }
 
-    ee_infer(n, w);
+    ee_infer(n, w, offset);
   } else if (strncmp(command, "results", EE_CMD_SIZE) == 0) {
     th_results();
   } else {
@@ -182,8 +193,8 @@ arg_claimed_t ee_profile_parse(char *command) {
  * th_final_initialize() function.
  *
  */
-void ee_infer(size_t n, size_t n_warmup) {
-  th_load_tensor(); /* if necessary */
+void ee_infer(size_t n, size_t n_warmup, size_t offset) {
+  th_load_tensor(offset); /* if necessary */
   th_printf("m-warmup-start-%d\r\n", n_warmup);
   while (n_warmup-- > 0) {
     th_infer(); /* call the API inference function */
@@ -325,10 +336,10 @@ long ee_hexdec(char *hex) {
  * @return number of bytes copied from internal buffer.
  *
  */
-size_t ee_get_buffer(uint8_t* buffer, size_t max_len) {
-  int len = max_len < g_buff_pos ? max_len : g_buff_pos;
+size_t ee_get_buffer(uint8_t* buffer, size_t max_len, size_t offset) {
+  int len = max_len < g_buff_pos - offset ? max_len : g_buff_pos;
   if (buffer != nullptr) {
-    memcpy(buffer, gp_buff, len * sizeof(uint8_t));
+    memcpy(buffer, gp_buff + offset, len * sizeof(uint8_t));
   }
   return len;
 }
